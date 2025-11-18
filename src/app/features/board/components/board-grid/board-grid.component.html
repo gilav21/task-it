@@ -1,0 +1,66 @@
+<div class="board-container">
+
+  <!-- Header Row -->
+  <div class="grid-row header" [style.grid-template-columns]="gridTemplate()">
+    <div class="grid-cell header-cell sticky-first">
+      Task Name
+    </div>
+    @for (col of columns(); track col.id) {
+    <div class="grid-cell header-cell" [style.width.px]="col.width">
+      {{ col.title }}
+    </div>
+    }
+  </div>
+
+  <!-- Sticky Group Header Overlay -->
+  @if (currentGroup(); as group) {
+  <div class="sticky-group-header">
+    <app-group-header [group]="group" (toggleCollapse)="onToggleGroup($event)"></app-group-header>
+  </div>
+  }
+
+  <!-- Virtual Scroll Viewport -->
+  <cdk-virtual-scroll-viewport itemSize="40" class="viewport" cdkDropList (cdkDropListDropped)="onDrop($event)"
+    (scrolledIndexChange)="onScroll($event)">
+
+    <div *cdkVirtualFor="let row of flatRows(); trackBy: trackByFn" class="virtual-row-container" cdkDrag
+      [cdkDragDisabled]="row.type !== 'TASK_ROW'">
+
+      @switch (row.type) {
+
+      <!-- 1. GROUP HEADER -->
+      @case ('GROUP_HEADER') {
+      <app-group-header [group]="row.data" (toggleCollapse)="onToggleGroup($event)">
+      </app-group-header>
+      }
+
+      <!-- 2. TASK ROW -->
+      @case ('TASK_ROW') {
+      <div class="grid-row task-row" [style.grid-template-columns]="gridTemplate()">
+
+        <!-- Sticky Name Column -->
+        <div class="grid-cell sticky-first name-cell">
+          {{ row.data.name }}
+        </div>
+
+        <!-- Dynamic Columns -->
+        @for (col of columns(); track col.id) {
+        <div class="grid-cell">
+          <ng-container appCellHost [cellType]="col.type" [cellValue]="row.data.values[col.id]"
+            [cellConfig]="col.settings" (cellValueChange)="onCellUpdate(row.data.id, col.id, $event)">
+          </ng-container>
+        </div>
+        }
+      </div>
+      }
+
+      <!-- 3. GROUP FOOTER -->
+      @case ('GROUP_FOOTER') {
+      <app-group-footer [groupId]="row.groupId" (addItem)="onAddItem($event)"></app-group-footer>
+      }
+
+      }
+    </div>
+
+  </cdk-virtual-scroll-viewport>
+</div>
