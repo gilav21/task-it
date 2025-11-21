@@ -4,9 +4,11 @@ export interface ColumnSettings {
     [key: string]: any;
 }
 
+export type CellType = 'TEXT' | 'NUMBER' | 'CHECKBOX' | 'STATUS' | 'DATE' | 'PEOPLE' | 'TAGS';
+
 export interface ColumnDef {
     id: string;
-    type: string;
+    type: CellType;
     title: string;
     width: number;
     settings?: ColumnSettings;

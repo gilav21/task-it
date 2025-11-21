@@ -1,7 +1,6 @@
 <div class="board-container">
-
   <!-- Header Row -->
-  <div class="grid-row header" [style.grid-template-columns]="gridTemplate()">
+  <div #headerRow class="grid-row header" [style.grid-template-columns]="gridTemplate()">
     <div class="grid-cell header-cell sticky-first">
       Task Name
     </div>
@@ -20,8 +19,8 @@
   }
 
   <!-- Virtual Scroll Viewport -->
-  <cdk-virtual-scroll-viewport itemSize="40" class="viewport" cdkDropList (cdkDropListDropped)="onDrop($event)"
-    (scrolledIndexChange)="onScroll($event)">
+  <cdk-virtual-scroll-viewport itemSize="40" minBufferPx="200" maxBufferPx="400" class="viewport" cdkDropList
+    (cdkDropListDropped)="onDrop($event)" (scrolledIndexChange)="onScroll($event)">
 
     <div *cdkVirtualFor="let row of flatRows(); trackBy: trackByFn" class="virtual-row-container" cdkDrag
       [cdkDragDisabled]="row.type !== 'TASK_ROW'">
@@ -47,7 +46,8 @@
         @for (col of columns(); track col.id) {
         <div class="grid-cell">
           <ng-container appCellHost [cellType]="col.type" [cellValue]="row.data.values[col.id]"
-            [cellConfig]="col.settings" (cellValueChange)="onCellUpdate(row.data.id, col.id, $event)">
+            [cellConfig]="col.settings" [isScrolling]="isFastScrolling()"
+            (cellValueChange)="onCellUpdate(row.data.id, col.id, $event)">
           </ng-container>
         </div>
         }

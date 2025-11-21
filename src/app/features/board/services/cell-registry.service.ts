@@ -5,6 +5,8 @@ import { NumberCellComponent } from '../components/cells/number-cell/number-cell
 import { CheckboxCellComponent } from '../components/cells/checkbox-cell/checkbox-cell.component';
 import { StatusCellComponent } from '../components/cells/status-cell/status-cell.component';
 import { DateCellComponent } from '../components/cells/date-cell/date-cell.component';
+import { PeopleCellComponent } from '../components/cells/people-cell/people-cell.component';
+import { TagsCellComponent } from '../components/cells/tags-cell/tags-cell.component';
 
 @Injectable({ providedIn: 'root' })
 export class CellRegistryService {
@@ -16,6 +18,8 @@ export class CellRegistryService {
         this.register('CHECKBOX', CheckboxCellComponent);
         this.register('STATUS', StatusCellComponent);
         this.register('DATE', DateCellComponent);
+        this.register('PEOPLE', PeopleCellComponent);
+        this.register('TAGS', TagsCellComponent);
     }
 
     register(type: string, component: Type<ICellComponent>) {
@@ -26,3 +30,4 @@ export class CellRegistryService {
         return this.registry.get(type) || TextCellComponent; // Fallback to Text
     }
 }
+

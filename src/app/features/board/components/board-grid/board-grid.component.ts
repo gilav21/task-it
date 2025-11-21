@@ -1,4 +1,4 @@
-import { Component, input, computed, ChangeDetectionStrategy, output, viewChild, signal } from '@angular/core';
+import { Component, input, computed, ChangeDetectionStrategy, output, viewChild, signal, ElementRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ScrollingModule, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { DragDropModule, CdkDragDrop } from '@angular/cdk/drag-drop';
@@ -7,6 +7,7 @@ import { DisplayRow } from '../../models/grid.model';
 import { GroupHeaderComponent } from '../rows/group-header/group-header.component';
 import { GroupFooterComponent } from '../rows/group-footer/group-footer.component';
 import { CellHostDirective } from '../../directives/cell-host.directive';
+import { ScrollSpeedService } from '../../services/scroll-speed.service';
 
 @Component({
     selector: 'app-board-grid',
@@ -33,7 +34,11 @@ export class BoardGridComponent {
     itemDrop = output<{ prevIndex: number, currIndex: number }>();
 
     viewport = viewChild(CdkVirtualScrollViewport);
+    headerRow = viewChild<ElementRef>('headerRow');
     currentGroup = signal<BoardGroup | null>(null);
+
+    private scrollSpeedService = inject(ScrollSpeedService);
+    isFastScrolling = this.scrollSpeedService.isFastScrolling;
 
     // Flattening Logic
     flatRows = computed(() => {
@@ -114,5 +119,19 @@ export class BoardGridComponent {
             const group = this.groups().find(g => g.id === row.groupId);
             this.currentGroup.set(group || null);
         }
+    }
+
+    ngAfterViewInit() {
+        this.viewport()?.elementScrolled().subscribe(() => {
+            const offset = this.viewport()?.elementRef.nativeElement.scrollLeft;
+            const scrollTop = this.viewport()?.elementRef.nativeElement.scrollTop || 0;
+
+            const header = this.headerRow()?.nativeElement;
+            if (header && offset !== undefined) {
+                header.scrollLeft = offset;
+            }
+
+            this.scrollSpeedService.onScroll(scrollTop);
+        });
     }
 }

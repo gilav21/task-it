@@ -12,6 +12,7 @@ import { BoardService } from './features/board/services/board.service';
     <div class="app-container">
       <div class="app-header">
         <h1>Task-It Board</h1>
+        <button (click)="generateData()">Generate Large Dataset</button>
       </div>
       <div class="board-wrapper">
         <app-board-grid 
@@ -41,6 +42,20 @@ import { BoardService } from './features/board/services/board.service';
         margin: 0;
         font-size: 20px;
       }
+      
+      button {
+        margin-left: 20px;
+        padding: 8px 16px;
+        background: #0073ea;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        
+        &:hover {
+          background: #0060b9;
+        }
+      }
     }
     .board-wrapper {
       flex: 1;
@@ -53,5 +68,9 @@ export class AppComponent {
 
   onCellUpdate(event: { itemId: string, colId: string, val: any }) {
     this.boardService.updateCell(event.itemId, event.colId, event.val);
+  }
+
+  generateData() {
+    this.boardService.generateLargeDataset(100, 3000);
   }
 }

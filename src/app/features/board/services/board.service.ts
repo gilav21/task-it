@@ -23,7 +23,7 @@ export class BoardService {
         { id: 'col_date', type: 'DATE', title: 'Date', width: 120, settings: { mode: 'date' } },
         { id: 'col_deadline', type: 'DATE', title: 'Deadline', width: 160, settings: { mode: 'datetime' } },
         { id: 'col_quarter', type: 'DATE', title: 'Quarter', width: 100, settings: { mode: 'quarter' } },
-        { id: 'col_person', type: 'TEXT', title: 'Person', width: 100 },
+        { id: 'col_person', type: 'PEOPLE', title: 'Person', width: 100 },
         { id: 'col_budget', type: 'NUMBER', title: 'Budget', width: 100 },
         { id: 'col_done', type: 'CHECKBOX', title: 'Done?', width: 80 }
     ];
@@ -42,7 +42,7 @@ export class BoardService {
                         'col_date': '2023-10-01',
                         'col_deadline': '2023-10-01T14:30',
                         'col_quarter': 'Q4',
-                        'col_person': 'Alice',
+                        'col_person': [{ name: 'Alice Malice', color: 'red' }, { name: 'Sponge Bob', color: 'blue' }],
                         'col_budget': 500,
                         'col_done': true
                     }
@@ -159,5 +159,110 @@ export class BoardService {
         // Since we have groups, mapping is complex. 
         // Let's just log for now to prove the event fires, as full reordering logic with groups is complex.
         console.log('Move item from', prevIndex, 'to', currIndex);
+    }
+
+    generateLargeDataset(numColumns: number, numTasks: number) {
+        const colTypes = ['TEXT', 'STATUS', 'DATE', 'NUMBER', 'CHECKBOX', 'PEOPLE', 'TAGS'];
+        const newColumns: ColumnDef[] = [];
+
+        // Generate Columns
+        for (let i = 0; i < numColumns; i++) {
+            const type = colTypes[i % colTypes.length];
+            const colDef: ColumnDef = {
+                id: `col_${i}`,
+                type: type as any,
+                title: `Column ${i}`,
+                width: 120,
+                settings: {}
+            };
+
+            if (type === 'STATUS') {
+                colDef.settings = {
+                    labels: {
+                        'Done': { text: 'Done', color: '#00c875' },
+                        'Stuck': { text: 'Stuck', color: '#e2445c' },
+                        'Working': { text: 'Working', color: '#fdab3d' },
+                        'Pending': { text: 'Pending', color: '#579bfc' },
+                        '': { text: '', color: '#c4c4c4' }
+                    }
+                };
+            } else if (type === 'DATE') {
+                // Mix modes
+                const modes = ['date', 'datetime', 'quarter'];
+                colDef.settings = { mode: modes[i % 3] };
+            }
+
+            newColumns.push(colDef);
+        }
+        this.columns.set(newColumns);
+
+        // Generate Groups and Items
+        const numGroups = 5;
+        const tasksPerGroup = Math.ceil(numTasks / numGroups);
+        const newGroups: BoardGroup[] = [];
+
+        const peoplePool = [
+            { name: 'Alice Smith', color: '#FF5733' },
+            { name: 'Bob Jones', color: '#33FF57' },
+            { name: 'Charlie Brown', color: '#3357FF' },
+            { name: 'Diana Prince', color: '#F333FF' },
+            { name: 'Evan Wright', color: '#33FFF3' }
+        ];
+
+        const tagsPool = [
+            { name: 'Urgent', color: '#e2445c' },
+            { name: 'Design', color: '#a25ddc' },
+            { name: 'Dev', color: '#00c875' },
+            { name: 'QA', color: '#fdab3d' },
+            { name: 'Docs', color: '#579bfc' }
+        ];
+
+        for (let g = 0; g < numGroups; g++) {
+            const items: any[] = [];
+            for (let t = 0; t < tasksPerGroup; t++) {
+                const values: any = {};
+                newColumns.forEach(col => {
+                    if (col.type === 'STATUS') {
+                        const keys = Object.keys(col.settings?.labels || {});
+                        values[col.id] = keys[Math.floor(Math.random() * keys.length)];
+                    } else if (col.type === 'DATE') {
+                        values[col.id] = new Date().toISOString();
+                    } else if (col.type === 'CHECKBOX') {
+                        values[col.id] = Math.random() > 0.5;
+                    } else if (col.type === 'NUMBER') {
+                        values[col.id] = Math.floor(Math.random() * 1000);
+                    } else if (col.type === 'PEOPLE') {
+                        const count = Math.floor(Math.random() * 3) + 1;
+                        const selected = [];
+                        for (let k = 0; k < count; k++) selected.push(peoplePool[Math.floor(Math.random() * peoplePool.length)]);
+                        values[col.id] = selected;
+                    } else if (col.type === 'TAGS') {
+                        const count = Math.floor(Math.random() * 4) + 1;
+                        const selected = [];
+                        for (let k = 0; k < count; k++) selected.push(tagsPool[Math.floor(Math.random() * tagsPool.length)]);
+                        values[col.id] = selected;
+                    } else {
+                        values[col.id] = `Text ${g}-${t}`;
+                    }
+                });
+
+                items.push({
+                    id: `i_${g}_${t}`,
+                    boardId: 'b1',
+                    groupId: `g_${g}`,
+                    name: `Task ${g}-${t}`,
+                    values: values
+                });
+            }
+
+            newGroups.push({
+                id: `g_${g}`,
+                title: `Group ${g}`,
+                color: '#579bfc',
+                isCollapsed: false,
+                items: items
+            });
+        }
+        this.groups.set(newGroups);
     }
 }

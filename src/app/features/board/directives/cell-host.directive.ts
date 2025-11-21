@@ -1,52 +1,119 @@
-import { Directive, ViewContainerRef, inject, effect, input, output, ComponentRef } from '@angular/core';
-import { CellRegistryService } from '../services/cell-registry.service';
+import { Directive, ViewContainerRef, Input, OnChanges, SimpleChanges, ComponentRef, Type, inject } from '@angular/core';
+import { CellType } from '../models/board.model';
 import { ICellComponent } from '../models/cell.interface';
+import { CellRegistryService } from '../services/cell-registry.service';
 
 @Directive({
     selector: '[appCellHost]',
     standalone: true
 })
-export class CellHostDirective {
-    // Inputs passed from the grid HTML
-    cellType = input.required<string>();
-    cellValue = input.required<any>();
-    cellConfig = input<any>({});
+export class CellHostDirective implements OnChanges {
+    @Input({ required: true }) cellType!: CellType;
+    @Input() cellValue: any;
+    @Input() cellConfig: any;
+    @Input() isScrolling = false;
 
-    // Output bubbling up to the grid
-    cellValueChange = output<any>();
-
-    private vcr = inject(ViewContainerRef);
-    private factory = inject(CellRegistryService);
     private componentRef?: ComponentRef<ICellComponent>;
+    private registry = inject(CellRegistryService);
+    private vcr = inject(ViewContainerRef);
+    private placeholderNode: HTMLElement | null = null;
 
-    constructor() {
-        // Reactively re-render if the generic Type changes
-        effect(() => {
-            this.loadComponent(this.cellType());
-        });
+    ngOnChanges(changes: SimpleChanges) {
+        if (changes['isScrolling']) {
+            this.render();
+            return;
+        }
 
-        // Reactively update inputs on the created component instance
-        effect(() => {
-            if (this.componentRef) {
-                this.componentRef.setInput('value', this.cellValue());
-                this.componentRef.setInput('config', this.cellConfig());
+        if (changes['cellType']) {
+            this.render();
+        } else if (this.componentRef) {
+            // Update inputs if component exists and type hasn't changed
+            if (changes['cellValue']) {
+                this.componentRef.setInput('value', this.cellValue);
             }
-        });
+            if (changes['cellConfig']) {
+                this.componentRef.setInput('config', this.cellConfig);
+            }
+        }
     }
 
-    private loadComponent(type: string) {
+    private render() {
+        // Cleanup previous state
         this.vcr.clear();
+        if (this.componentRef) {
+            this.componentRef.destroy();
+            this.componentRef = undefined;
+        }
+        if (this.placeholderNode) {
+            this.placeholderNode.remove();
+            this.placeholderNode = null;
+        }
 
-        const componentClass = this.factory.getComponent(type);
-        this.componentRef = this.vcr.createComponent(componentClass);
+        // Lightweight Rendering Mode
+        if (this.isScrolling) {
+            this.renderLightweight();
+            return;
+        }
 
-        // Initialize inputs on the new component
-        this.componentRef.setInput('value', this.cellValue());
-        this.componentRef.setInput('config', this.cellConfig());
+        // Full Component Mode
+        const componentClass = this.registry.getComponent(this.cellType);
+        if (componentClass) {
+            this.componentRef = this.vcr.createComponent(componentClass);
+            this.componentRef.setInput('value', this.cellValue);
+            this.componentRef.setInput('config', this.cellConfig);
 
-        // Subscribe to the component's output manually
-        this.componentRef.instance.valueChange.subscribe((val: any) => {
-            this.cellValueChange.emit(val);
-        });
+            // Subscribe to output
+            if (this.componentRef.instance.valueChange) {
+                this.componentRef.instance.valueChange.subscribe(val => {
+                    // We can emit this up if needed
+                });
+            }
+        }
+    }
+
+    private renderLightweight() {
+        // Optimization: Use direct DOM manipulation for maximum speed during scroll.
+        const parent = this.vcr.element.nativeElement.parentElement;
+        if (!parent) return;
+
+        let displayValue = '';
+        let color = '#000';
+
+        switch (this.cellType) {
+            case 'PEOPLE':
+                const people = Array.isArray(this.cellValue) ? this.cellValue : [];
+                if (people.length > 0) {
+                    displayValue = `${people.length} People`;
+                    color = '#666';
+                }
+                break;
+            case 'TAGS':
+                const tags = Array.isArray(this.cellValue) ? this.cellValue : [];
+                if (tags.length > 0) {
+                    displayValue = `${tags.length} Tags`;
+                    color = '#666';
+                }
+                break;
+            case 'STATUS':
+                displayValue = this.cellValue || '';
+                break;
+            default:
+                displayValue = String(this.cellValue || '');
+        }
+
+        const placeholder = document.createElement('div');
+        placeholder.textContent = displayValue;
+        placeholder.style.padding = '0 8px';
+        placeholder.style.color = color;
+        placeholder.style.fontSize = '13px';
+        placeholder.style.whiteSpace = 'nowrap';
+        placeholder.style.overflow = 'hidden';
+        placeholder.style.textOverflow = 'ellipsis';
+        placeholder.style.height = '100%';
+        placeholder.style.display = 'flex';
+        placeholder.style.alignItems = 'center';
+
+        this.placeholderNode = placeholder;
+        parent.appendChild(placeholder);
     }
 }
