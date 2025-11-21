@@ -1,4 +1,4 @@
-import { Directive, ViewContainerRef, Input, OnChanges, SimpleChanges, ComponentRef, Type, inject } from '@angular/core';
+import { Directive, ViewContainerRef, Input, Output, EventEmitter, OnChanges, SimpleChanges, ComponentRef, Type, inject } from '@angular/core';
 import { CellType } from '../models/board.model';
 import { ICellComponent } from '../models/cell.interface';
 import { CellRegistryService } from '../services/cell-registry.service';
@@ -12,6 +12,8 @@ export class CellHostDirective implements OnChanges {
     @Input() cellValue: any;
     @Input() cellConfig: any;
     @Input() isScrolling = false;
+
+    @Output() cellValueChange = new EventEmitter<any>();
 
     private componentRef?: ComponentRef<ICellComponent>;
     private registry = inject(CellRegistryService);
@@ -65,7 +67,7 @@ export class CellHostDirective implements OnChanges {
             // Subscribe to output
             if (this.componentRef.instance.valueChange) {
                 this.componentRef.instance.valueChange.subscribe(val => {
-                    // We can emit this up if needed
+                    this.cellValueChange.emit(val);
                 });
             }
         }
