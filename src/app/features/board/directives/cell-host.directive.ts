@@ -40,6 +40,10 @@ export class CellHostDirective {
         const componentClass = this.factory.getComponent(type);
         this.componentRef = this.vcr.createComponent(componentClass);
 
+        // Initialize inputs on the new component
+        this.componentRef.setInput('value', this.cellValue());
+        this.componentRef.setInput('config', this.cellConfig());
+
         // Subscribe to the component's output manually
         this.componentRef.instance.valueChange.subscribe((val: any) => {
             this.cellValueChange.emit(val);
