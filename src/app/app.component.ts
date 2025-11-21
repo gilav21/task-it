@@ -20,6 +20,7 @@ import { BoardService } from './features/board/services/board.service';
           [columns]="boardService.columns()"
           (toggleGroup)="boardService.toggleGroup($event)"
           (cellUpdate)="onCellUpdate($event)"
+          (cellConfigUpdate)="onCellConfigUpdate($event)"
           (addItem)="boardService.addItem($event)"
           (itemDrop)="boardService.moveItem($event.prevIndex, $event.currIndex)">
         </app-board-grid>
@@ -68,6 +69,10 @@ export class AppComponent {
 
   onCellUpdate(event: { itemId: string, colId: string, val: any }) {
     this.boardService.updateCell(event.itemId, event.colId, event.val);
+  }
+
+  onCellConfigUpdate(event: { colId: string, config: any }) {
+    this.boardService.updateColumnConfig(event.colId, event.config);
   }
 
   generateData() {

@@ -30,6 +30,7 @@ export class BoardGridComponent {
 
     toggleGroup = output<string>();
     cellUpdate = output<{ itemId: string, colId: string, val: any }>();
+    cellConfigUpdate = output<{ colId: string, config: any }>();
     addItem = output<string>();
     itemDrop = output<{ prevIndex: number, currIndex: number }>();
 
@@ -93,6 +94,10 @@ export class BoardGridComponent {
 
     onCellUpdate(itemId: string, colId: string, val: any) {
         this.cellUpdate.emit({ itemId, colId, val });
+    }
+
+    onCellConfigUpdate(colId: string, config: any) {
+        this.cellConfigUpdate.emit({ colId, config });
     }
 
     onAddItem(groupId: string) {

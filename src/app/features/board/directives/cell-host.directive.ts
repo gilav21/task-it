@@ -14,6 +14,7 @@ export class CellHostDirective implements OnChanges {
     @Input() isScrolling = false;
 
     @Output() cellValueChange = new EventEmitter<any>();
+    @Output() cellConfigChange = new EventEmitter<any>();
 
     private componentRef?: ComponentRef<ICellComponent>;
     private registry = inject(CellRegistryService);
@@ -68,6 +69,13 @@ export class CellHostDirective implements OnChanges {
             if (this.componentRef.instance.valueChange) {
                 this.componentRef.instance.valueChange.subscribe(val => {
                     this.cellValueChange.emit(val);
+                });
+            }
+
+            // Subscribe to config change (if supported)
+            if ((this.componentRef.instance as any).configChange) {
+                (this.componentRef.instance as any).configChange.subscribe((conf: any) => {
+                    this.cellConfigChange.emit(conf);
                 });
             }
         }

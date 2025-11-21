@@ -122,6 +122,17 @@ export class BoardService {
         });
     }
 
+    updateColumnConfig(colId: string, config: any) {
+        this.columns.update(cols => {
+            return cols.map(c => {
+                if (c.id === colId) {
+                    return { ...c, settings: config };
+                }
+                return c;
+            });
+        });
+    }
+
     addGroup() {
         const newGroup: BoardGroup = {
             id: `g${Date.now()}`,

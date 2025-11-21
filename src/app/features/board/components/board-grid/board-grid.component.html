@@ -47,7 +47,8 @@
         <div class="grid-cell">
           <ng-container appCellHost [cellType]="col.type" [cellValue]="row.data.values[col.id]"
             [cellConfig]="col.settings" [isScrolling]="isFastScrolling()"
-            (cellValueChange)="onCellUpdate(row.data.id, col.id, $event)">
+            (cellValueChange)="onCellUpdate(row.data.id, col.id, $event)"
+            (cellConfigChange)="onCellConfigUpdate(col.id, $event)">
           </ng-container>
         </div>
         }
