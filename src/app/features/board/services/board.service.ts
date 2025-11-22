@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { Board, BoardGroup, ColumnDef } from '../models/board.model';
+import { Board, BoardGroup, ColumnDef, BoardItem } from '../models/board.model';
 
 @Injectable({ providedIn: 'root' })
 export class BoardService {
@@ -98,6 +98,78 @@ export class BoardService {
     // Signals
     columns = signal<ColumnDef[]>(this.initialColumns);
     groups = signal<BoardGroup[]>(this.initialGroups);
+
+    constructor() {
+        // Initialize with large dataset for performance analysis as requested
+        // Comment out to use default small dataset
+        this.loadLargeDataset();
+    }
+
+    loadLargeDataset() {
+        const { columns, groups } = this.generateLargeDataset();
+        this.columns.set(columns);
+        this.groups.set(groups);
+    }
+
+    private generateLargeDataset() {
+        const colTypes = ['STATUS', 'DATE', 'TEXT', 'NUMBER', 'CHECKBOX'];
+        const columns: ColumnDef[] = [];
+        for (let i = 0; i < 50; i++) {
+            columns.push({
+                id: `col_${i}`,
+                type: colTypes[i % colTypes.length],
+                title: `Column ${i}`,
+                width: 150,
+                settings: i % colTypes.length === 0 ? {
+                     labels: {
+                        'Done': { text: 'Done', color: '#00c875' },
+                        'Stuck': { text: 'Stuck', color: '#e2445c' },
+                        'Working': { text: 'Working', color: '#fdab3d' },
+                        'Pending': { text: 'Pending', color: '#579bfc' },
+                        '': { text: '', color: '#c4c4c4' }
+                    }
+                } : {}
+            });
+        }
+
+        const groups: BoardGroup[] = [];
+        for (let g = 0; g < 10; g++) {
+            const items: BoardItem[] = [];
+            for (let i = 0; i < 200; i++) {
+                 const values: any = {};
+                 columns.forEach(c => {
+                     values[c.id] = this.getMockValue(c.type);
+                 });
+                 items.push({
+                     id: `g${g}_i${i}`,
+                     boardId: 'b1',
+                     groupId: `g${g}`,
+                     name: `Task ${g}-${i}`,
+                     values
+                 });
+            }
+            groups.push({
+                id: `g${g}`,
+                title: `Group ${g}`,
+                color: '#579bfc',
+                isCollapsed: false,
+                items
+            });
+        }
+
+        return { columns, groups };
+    }
+
+    private getMockValue(type: string) {
+        switch(type) {
+            case 'STATUS': return 'Working';
+            case 'DATE': return '2023-10-01';
+            case 'TEXT': return 'Some text';
+            case 'NUMBER': return 123;
+            case 'CHECKBOX': return true;
+            default: return '';
+        }
+    }
 
     toggleGroup(groupId: string) {
         this.groups.update(groups =>
