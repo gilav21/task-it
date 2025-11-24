@@ -79,4 +79,28 @@ export class NumberCellComponent implements ICellComponent<number> {
   onValueChange(val: number) {
     this.valueChange.emit(val);
   }
+
+  static getLightweightView(value: any, config: any): HTMLElement {
+    const container = document.createElement('div');
+    container.style.width = '100%';
+    container.style.height = '100%';
+    container.style.display = 'flex';
+    container.style.alignItems = 'center';
+    container.style.justifyContent = 'center';
+    container.style.padding = '0 8px';
+    container.style.boxSizing = 'border-box';
+
+    if (value !== null && value !== undefined) {
+      // Shimmer effect for non-empty values
+      const shimmer1 = document.createElement('div');
+      shimmer1.style.width = '40%';
+      shimmer1.style.height = '8px';
+      shimmer1.style.backgroundColor = '#f0f0f0';
+      shimmer1.style.borderRadius = '4px';
+
+      container.appendChild(shimmer1);
+    }
+
+    return container;
+  }
 }

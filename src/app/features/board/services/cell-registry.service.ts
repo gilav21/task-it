@@ -1,5 +1,5 @@
 import { Injectable, Type } from '@angular/core';
-import { ICellComponent } from '../models/cell.interface';
+import { ICellComponent, CellComponentType } from '../models/cell.interface';
 import { TextCellComponent } from '../components/cells/text-cell/text-cell.component';
 import { NumberCellComponent } from '../components/cells/number-cell/number-cell.component';
 import { CheckboxCellComponent } from '../components/cells/checkbox-cell/checkbox-cell.component';
@@ -10,7 +10,7 @@ import { TagsCellComponent } from '../components/cells/tags-cell/tags-cell.compo
 
 @Injectable({ providedIn: 'root' })
 export class CellRegistryService {
-    private registry = new Map<string, Type<ICellComponent>>();
+    private registry = new Map<string, CellComponentType>();
 
     constructor() {
         this.register('TEXT', TextCellComponent);
@@ -22,11 +22,11 @@ export class CellRegistryService {
         this.register('TAGS', TagsCellComponent);
     }
 
-    register(type: string, component: Type<ICellComponent>) {
+    register(type: string, component: CellComponentType) {
         this.registry.set(type, component);
     }
 
-    getComponent(type: string): Type<ICellComponent> {
+    getComponent(type: string): CellComponentType {
         return this.registry.get(type) || TextCellComponent; // Fallback to Text
     }
 }

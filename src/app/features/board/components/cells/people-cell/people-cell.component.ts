@@ -279,4 +279,32 @@ export class PeopleCellComponent implements ICellComponent {
   focus() {
     this.toggleOpen();
   }
+
+  static getLightweightView(value: any, config: any): HTMLElement {
+    const container = document.createElement('div');
+    container.style.width = '100%';
+    container.style.height = '100%';
+    container.style.display = 'flex';
+    container.style.alignItems = 'center';
+    container.style.padding = '0 8px';
+    container.style.boxSizing = 'border-box';
+    container.style.overflow = 'hidden';
+    container.style.paddingLeft = '8px';
+
+    const people = Array.isArray(value) ? value : [];
+
+    people.slice(0, 3).forEach((p: any, i: number) => {
+      const circle = document.createElement('div');
+      circle.style.width = '24px';
+      circle.style.height = '24px';
+      circle.style.borderRadius = '50%';
+      circle.style.backgroundColor = '#e0e0e0';
+      circle.style.border = '2px solid white';
+      circle.style.marginLeft = i === 0 ? '0' : '-8px';
+      circle.style.flexShrink = '0';
+      container.appendChild(circle);
+    });
+
+    return container;
+  }
 }

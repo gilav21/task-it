@@ -86,154 +86,23 @@ export class CellHostDirective implements OnChanges {
         const parent = this.vcr.element.nativeElement.parentElement;
         if (!parent) return;
 
-        const container = document.createElement('div');
-        container.style.width = '100%';
-        container.style.height = '100%';
-        container.style.display = 'flex';
-        container.style.alignItems = 'center';
-        container.style.padding = '0 8px';
-        container.style.boxSizing = 'border-box';
-        container.style.overflow = 'hidden';
+        const componentClass = this.registry.getComponent(this.cellType);
 
-        switch (this.cellType) {
-            case 'STATUS': {
-                const labels = this.cellConfig?.labels || {};
-                const val = this.cellValue;
-                const label = labels[val];
-                const color = label ? label.color : '#c4c4c4';
-                const text = label ? label.text : (val || '');
+        if (componentClass && (componentClass as any).getLightweightView) {
+            const element = (componentClass as any).getLightweightView(this.cellValue, this.cellConfig);
+            this.placeholderNode = element;
+            parent.appendChild(element);
+        } else {
+            // Fallback if no lightweight view defined
+            const container = document.createElement('div');
+            container.style.padding = '0 8px';
+            container.style.display = 'flex';
+            container.style.alignItems = 'center';
+            container.style.height = '100%';
+            container.textContent = String(this.cellValue || '');
 
-                const pill = document.createElement('div');
-                pill.textContent = text;
-                pill.style.backgroundColor = color;
-                pill.style.color = 'white';
-                pill.style.borderRadius = '4px';
-                pill.style.padding = '4px 12px';
-                pill.style.fontSize = '13px';
-                pill.style.textAlign = 'center';
-                pill.style.width = '100%';
-                pill.style.whiteSpace = 'nowrap';
-                pill.style.overflow = 'hidden';
-                pill.style.textOverflow = 'ellipsis';
-                pill.style.textShadow = '0 1px 2px rgba(0,0,0,0.1)';
-
-                container.appendChild(pill);
-                break;
-            }
-
-            case 'PEOPLE': {
-                const people = Array.isArray(this.cellValue) ? this.cellValue : [];
-                container.style.paddingLeft = '8px';
-
-                people.slice(0, 3).forEach((p: any, i: number) => {
-                    const circle = document.createElement('div');
-                    circle.style.width = '24px';
-                    circle.style.height = '24px';
-                    circle.style.borderRadius = '50%';
-                    circle.style.backgroundColor = '#e0e0e0';
-                    circle.style.border = '2px solid white';
-                    circle.style.marginLeft = i === 0 ? '0' : '-8px';
-                    circle.style.flexShrink = '0';
-                    container.appendChild(circle);
-                });
-                break;
-            }
-
-            case 'TAGS': {
-                const tags = Array.isArray(this.cellValue) ? this.cellValue : [];
-                container.style.gap = '4px';
-
-                tags.slice(0, 2).forEach((tag: any) => {
-                    const pill = document.createElement('div');
-                    // Handle both string tags and object tags if applicable, assuming string for now based on previous code
-                    const text = typeof tag === 'string' ? tag : (tag.title || tag.name || '');
-                    pill.textContent = text;
-                    pill.style.backgroundColor = '#f0f0f0';
-                    pill.style.color = '#666';
-                    pill.style.padding = '2px 8px';
-                    pill.style.borderRadius = '12px';
-                    pill.style.fontSize = '11px';
-                    pill.style.whiteSpace = 'nowrap';
-                    container.appendChild(pill);
-                });
-                break;
-            }
-
-            case 'CHECKBOX': {
-                container.style.justifyContent = 'center';
-                const box = document.createElement('div');
-                box.style.width = '16px';
-                box.style.height = '16px';
-                box.style.border = '2px solid #ddd';
-                box.style.borderRadius = '4px';
-
-                if (this.cellValue) {
-                    box.style.backgroundColor = '#007aff';
-                    box.style.borderColor = '#007aff';
-                    // Optional checkmark
-                    box.innerHTML = '<svg viewBox="0 0 24 24" style="fill: white; width: 12px; height: 12px; display: block; margin: 0 auto;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
-                }
-                container.appendChild(box);
-                break;
-            }
-
-            case 'DATE': {
-                container.style.gap = '6px';
-                container.style.color = '#666';
-                container.style.fontSize = '13px';
-
-                if (this.cellValue) {
-                    const icon = document.createElement('span');
-                    icon.textContent = '📅';
-                    icon.style.fontSize = '14px';
-
-                    const text = document.createElement('span');
-                    // Simple date formatting if it's a date string/object
-                    try {
-                        const date = new Date(this.cellValue);
-                        text.textContent = isNaN(date.getTime()) ? String(this.cellValue) : date.toLocaleDateString();
-                    } catch (e) {
-                        text.textContent = String(this.cellValue);
-                    }
-
-                    container.appendChild(icon);
-                    container.appendChild(text);
-                }
-                break;
-            }
-
-            default: {
-                // TEXT, NUMBER, or fallback
-                if (this.cellValue) {
-                    // Shimmer effect for non-empty values
-                    const shimmer1 = document.createElement('div');
-                    shimmer1.style.width = '70%';
-                    shimmer1.style.height = '8px';
-                    shimmer1.style.backgroundColor = '#f0f0f0';
-                    shimmer1.style.borderRadius = '4px';
-                    shimmer1.style.marginBottom = '4px';
-
-                    const shimmer2 = document.createElement('div');
-                    shimmer2.style.width = '40%';
-                    shimmer2.style.height = '8px';
-                    shimmer2.style.backgroundColor = '#f0f0f0';
-                    shimmer2.style.borderRadius = '4px';
-
-                    const wrapper = document.createElement('div');
-                    wrapper.style.width = '100%';
-                    wrapper.style.display = 'flex';
-                    wrapper.style.flexDirection = 'column';
-                    wrapper.style.justifyContent = 'center';
-
-                    wrapper.appendChild(shimmer1);
-                    wrapper.appendChild(shimmer2);
-                    container.appendChild(wrapper);
-                }
-                break;
-            }
+            this.placeholderNode = container;
+            parent.appendChild(container);
         }
-
-        this.placeholderNode = container;
-        parent.appendChild(container);
     }
 }

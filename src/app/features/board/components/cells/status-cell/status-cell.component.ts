@@ -273,4 +273,32 @@ export class StatusCellComponent implements ICellComponent<string> {
   focus() {
     this.togglePicker();
   }
+
+  static getLightweightView(value: any, config: any): HTMLElement {
+    const labels = config?.labels || {};
+    const label = labels[value];
+    const color = label ? label.color : '#c4c4c4';
+    const text = label ? label.text : (value || '');
+
+    const pill = document.createElement('div');
+    pill.textContent = text;
+    pill.style.backgroundColor = color;
+    pill.style.color = 'white';
+    pill.style.padding = '4px 12px';
+    pill.style.textAlign = 'center';
+    pill.style.width = '100%';
+    pill.style.height = '100%';
+    pill.style.fontSize = '16px';
+    pill.style.fontWeight = '500';
+    pill.style.alignItems = 'center';
+    pill.style.display = 'flex';
+    pill.style.justifyContent = 'center';
+    pill.style.alignItems = 'center';
+    pill.style.whiteSpace = 'nowrap';
+    pill.style.overflow = 'hidden';
+    pill.style.textOverflow = 'ellipsis';
+    pill.style.textShadow = '0 1px 2px rgba(0,0,0,0.1)';
+
+    return pill;
+  }
 }

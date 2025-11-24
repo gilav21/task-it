@@ -289,4 +289,34 @@ export class TagsCellComponent implements ICellComponent {
   focus() {
     this.toggleOpen();
   }
+
+  static getLightweightView(value: any, config: any): HTMLElement {
+    const container = document.createElement('div');
+    container.style.width = '100%';
+    container.style.height = '100%';
+    container.style.display = 'flex';
+    container.style.alignItems = 'center';
+    container.style.padding = '0 8px';
+    container.style.boxSizing = 'border-box';
+    container.style.overflow = 'hidden';
+    container.style.gap = '4px';
+
+    const tags = Array.isArray(value) ? value : [];
+
+    tags.slice(0, 2).forEach((tag: any) => {
+      const pill = document.createElement('div');
+      // Handle both string tags and object tags if applicable
+      const text = typeof tag === 'string' ? tag : (tag.label || tag.title || tag.name || '');
+      pill.textContent = text;
+      pill.style.backgroundColor = '#f0f0f0';
+      pill.style.color = '#666';
+      pill.style.padding = '2px 8px';
+      pill.style.borderRadius = '12px';
+      pill.style.fontSize = '11px';
+      pill.style.whiteSpace = 'nowrap';
+      container.appendChild(pill);
+    });
+
+    return container;
+  }
 }

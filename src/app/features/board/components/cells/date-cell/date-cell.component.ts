@@ -174,4 +174,37 @@ export class DateCellComponent implements ICellComponent<string> {
   onBlur() {
     // Optional cleanup
   }
+
+  static getLightweightView(value: any, config: any): HTMLElement {
+    const container = document.createElement('div');
+    container.style.width = '100%';
+    container.style.height = '100%';
+    container.style.display = 'flex';
+    container.style.alignItems = 'center';
+    container.style.gap = '6px';
+    container.style.padding = '0 8px';
+    container.style.boxSizing = 'border-box';
+    container.style.color = '#666';
+    container.style.fontSize = '13px';
+
+    if (value) {
+      const icon = document.createElement('span');
+      icon.textContent = '📅';
+      icon.style.fontSize = '14px';
+
+      const text = document.createElement('span');
+      // Simple date formatting if it's a date string/object
+      try {
+        const date = new Date(value);
+        text.textContent = isNaN(date.getTime()) ? String(value) : date.toLocaleDateString();
+      } catch (e) {
+        text.textContent = String(value);
+      }
+
+      container.appendChild(icon);
+      container.appendChild(text);
+    }
+
+    return container;
+  }
 }
