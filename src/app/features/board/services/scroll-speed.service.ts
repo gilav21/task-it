@@ -17,7 +17,7 @@ export class ScrollSpeedService {
     constructor() {
         // Reset fast scrolling state when scrolling stops
         this.scrollSubject.pipe(
-            debounce(() => timer(300)) // Increased debounce to keep fast mode active longer
+            debounce(() => timer(150)) // Increased debounce to keep fast mode active longer
         ).subscribe(() => {
             this._isFastScrolling.set(false);
         });
